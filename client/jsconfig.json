@@ -1,0 +1,19 @@
+// jsconfig.json
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    // Required for modern JS/JSX/React projects:
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "node"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
