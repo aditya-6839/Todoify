@@ -134,6 +134,7 @@ export const logout = async (req, res, next) => {
     }
 };
 
+
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
@@ -149,3 +150,71 @@ export const getMe = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Google OAuth Login/Register
+// @route   POST /api/auth/google
+// @access  Public
+export const googleAuth = async (req, res, next) => {
+    try {
+        const { googleId, email, name, avatar } = req.body;
+
+        // Validate required fields
+        if (!googleId || !email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Google ID and email are required',
+            });
+        }
+
+        // Check if user exists with this Google ID
+        let user = await User.findOne({ googleId });
+
+        if (!user) {
+            // Check if user exists with this email (might have registered with password before)
+            user = await User.findOne({ email });
+
+            if (user) {
+                // User exists with email, link Google account
+                user.googleId = googleId;
+                user.authProvider = 'google';
+                if (avatar) user.avatar = avatar;
+                await user.save();
+            } else {
+                // Create new user with Google auth
+                user = await User.create({
+                    name,
+                    email,
+                    googleId,
+                    authProvider: 'google',
+                    avatar: avatar || null,
+                    // No password needed for Google auth
+                });
+            }
+        }
+
+        const token = generateToken(user._id);
+
+        // Set cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+                authProvider: user.authProvider,
+                token,
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+

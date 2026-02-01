@@ -1,4 +1,3 @@
-
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
@@ -22,9 +21,28 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: [true, 'Please provide a password'],
-            minlength: [6, 'Password must be at least 6 characters'],
+            required: function () {
+                // Password only required for 'local' authentication
+                return this.authProvider === 'local';
+            },
+            minlength: [8, 'Password must be at least 8 characters'],
             select: false,
+        },
+        avatar: {
+            type: String,
+            default: null,
+        },
+        // Authentication provider
+        authProvider: {
+            type: String,
+            enum: ['local', 'google'],
+            default: 'local',
+        },
+        // Google ID for OAuth users
+        googleId: {
+            type: String,
+            default: null,
+            sparse: true, // Allows multiple null values
         },
     },
     {
@@ -47,6 +65,13 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// Virtual to get user's projects
+userSchema.virtual('projects', {
+    ref: 'Project',
+    localField: '_id',
+    foreignField: 'members.user',
+});
 
 const User = mongoose.model('User', userSchema);
 
