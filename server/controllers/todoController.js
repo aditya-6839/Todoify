@@ -57,7 +57,7 @@ export const getTodos = async (req, res, next) => {
         // Execute query
         const todos = await Todo.find(query)
             .sort(sortOption)
-            .populate('project', 'name color members')
+            .populate('project', 'name members')
             .populate('labels', 'name color')
             .populate('assignedTo', 'name email avatar');
 
@@ -77,7 +77,7 @@ export const getTodos = async (req, res, next) => {
 export const getTodo = async (req, res, next) => {
     try {
         const todo = await Todo.findById(req.params.id)
-            .populate('project', 'name color members')
+            .populate('project', 'name members')
             .populate('labels', 'name color')
             .populate('assignedTo', 'name email avatar')
             .populate('comments.user', 'name email avatar');

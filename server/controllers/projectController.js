@@ -59,7 +59,14 @@ export const getProject = async (req, res, next) => {
 // @access  Private
 export const createProject = async (req, res, next) => {
     try {
-        const { name, description, status, priority, category, deadline, color } = req.body;
+        const { name, description, status, priority, category, deadline } = req.body;
+
+        if (!name) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide a project name',
+            });
+        }
 
         // Create project with creator as owner
         const project = await Project.create({
@@ -69,7 +76,6 @@ export const createProject = async (req, res, next) => {
             priority,
             category,
             deadline,
-            color,
             members: [
                 {
                     user: req.user._id,
@@ -120,7 +126,9 @@ export const updateProject = async (req, res, next) => {
         if (priority) project.priority = priority;
         if (category) project.category = category;
         if (deadline !== undefined) project.deadline = deadline;
-        if (permissions) project.permissions = { ...project.permissions, ...permissions };
+        if (permissions) {
+            project.permissions = { ...project.permissions.toObject(), ...permissions };
+        }
 
         await project.save();
         await project.populate('members.user', 'name email avatar');

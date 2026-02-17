@@ -31,11 +31,6 @@ const projectSchema = new mongoose.Schema(
                 },
             },
         ],
-        color: {
-            type: String,
-            default: '#3B82F6',
-            match: [/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Please provide a valid hex color'],
-        },
         // Permissions: Control what members can do
         permissions: {
             membersCanCreateTodos: {
