@@ -21,20 +21,20 @@ connectDB();
 // Initialize express app
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// CORS configuration
+// CORS configuration — must be FIRST before any other middleware
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || 'http://localhost:5173', // Frontend URL
-        credentials: true, // Allow cookies to be sent
+        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
     })
 );
+
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Routes
 app.get('/', (req, res) => {
