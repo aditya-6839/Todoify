@@ -63,7 +63,7 @@ const AppDashboard = () => {
 const GuestRoute = ({ children }) => {
   const { user, loading } = useAuth()
   if (loading) return null
-  if (user) return <Navigate to="/app/dashboard" replace />
+  if (user) return <Navigate to="/app/inbox" replace />
   return children
 }
 

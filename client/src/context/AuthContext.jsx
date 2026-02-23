@@ -29,7 +29,9 @@ export const AuthProvider = ({ children }) => {
     const register = async ({ name, email, password }) => {
         const { data } = await api.post('/auth/register', { name, email, password });
         if (data.success) {
-            // don't set user here — redirect to login to confirm credentials
+            // Cookie is set by the server; sync React state so the user is
+            // immediately authenticated without needing to hit /auth/me again.
+            setUser(data.data);
             return true;
         }
         return false;
@@ -51,6 +53,7 @@ export const AuthProvider = ({ children }) => {
             await api.post('/auth/logout');
         } catch {
             // even if request fails, clear local state
+
         } finally {
             setUser(null);
             toast.success('Logged out successfully');
