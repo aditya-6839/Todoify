@@ -6,7 +6,7 @@ import {
     HelpCircle, BookOpen, PlusCircle, Layout
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Logo from './Logo';
+import Logo from '@/assets/Logo';
 
 const iconMap = {
     CheckCircle2: CheckCircle2,
