@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     ChevronDown, Menu, X,
     CheckCircle2, ClipboardList, Clock, TrendingUp, Users,
-    HelpCircle, BookOpen, PlusCircle, Layout
+    HelpCircle, BookOpen, PlusCircle, Layout, LogOut, LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Logo from '@/assets/Logo';
+import { useAuth } from '@/context/AuthContext';
 
 const iconMap = {
     CheckCircle2: CheckCircle2,
@@ -23,7 +24,11 @@ const iconMap = {
 const MarketingNavbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [mobileDropdown, setMobileDropdown] = useState('Made For'); // Default open as per image
+    const [mobileDropdown, setMobileDropdown] = useState('Made For');
+    const [logoutLoading, setLogoutLoading] = useState(false);
+
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -32,6 +37,17 @@ const MarketingNavbar = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const handleLogout = async () => {
+        try {
+            setLogoutLoading(true);
+            await logout();
+            navigate('/');
+        } finally {
+            setLogoutLoading(false);
+            setIsOpen(false);
+        }
+    };
 
     const navLinks = [
         {
@@ -59,6 +75,11 @@ const MarketingNavbar = () => {
         },
         { name: 'Pricing', href: '/pricing', hasDropdown: false },
     ];
+
+    /* ── User avatar initials ── */
+    const initials = user?.name
+        ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+        : '?';
 
     return (
         <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-2' : 'bg-transparent py-2'
@@ -108,14 +129,63 @@ const MarketingNavbar = () => {
                             ))}
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons — auth-aware */}
                         <div className="flex items-center space-x-2">
-                            <Link to="/app/login" className="text-[15px] font-semibold text-foreground hover:bg-secondary px-4 py-2 rounded-lg transition-all duration-200">
-                                Log in
-                            </Link>
-                            <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-5 py-2.5 text-[15px] font-bold transition-all shadow-sm active:scale-95">
-                                <Link to="/app/register">Start for free</Link>
-                            </Button>
+                            {user ? (
+                                <>
+                                    {/* Go to App */}
+                                    <Button asChild variant="ghost" className="gap-2 text-[15px] font-semibold px-4 py-2 rounded-lg">
+                                        <Link to="/app/inbox">
+                                            <LayoutDashboard className="w-4 h-4" />
+                                            Go to App
+                                        </Link>
+                                    </Button>
+
+                                    {/* Avatar + Logout */}
+                                    <div className="flex items-center gap-4 pl-2 border-l border-border">
+                                        {/* Avatar bubble */}
+                                        {user.avatar ? (
+                                            <img
+                                                src={user.avatar}
+                                                alt={user.name}
+                                                className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20"
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-black">
+                                                {initials}
+                                            </div>
+                                        )}
+
+                                        {/* Logout button */}
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={handleLogout}
+                                            disabled={logoutLoading}
+                                            className='gap-2'
+                                        >
+                                            {logoutLoading ? (
+                                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                </svg>
+                                            ) : (
+                                                <LogOut className="w-4 h-4" />
+                                            )}
+                                            Logout
+                                        </Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Link to="/app/login" className="text-[15px] font-semibold text-foreground hover:bg-secondary px-4 py-2 rounded-lg transition-all duration-200">
+                                        Log in
+                                    </Link>
+                                    <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-5 py-2.5 text-[15px] font-bold transition-all shadow-sm active:scale-95">
+                                        <Link to="/app/register">Start for free</Link>
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -175,16 +245,57 @@ const MarketingNavbar = () => {
                         ))}
                     </div>
 
-                    {/* Mobile Footer Buttons */}
+                    {/* Mobile Footer Buttons — auth-aware */}
                     <div className="p-6 bg-background border-t border-border mt-2">
-                        <div className="flex gap-4">
-                            <Button asChild variant="secondary" className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground border-none font-bold py-6 rounded-lg text-[15px]">
-                                <Link to="/app/login" onClick={() => setIsOpen(false)}>Log in</Link>
-                            </Button>
-                            <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 rounded-lg text-[15px] shadow-sm">
-                                <Link to="/app/register" onClick={() => setIsOpen(false)}>Start for free</Link>
-                            </Button>
-                        </div>
+                        {user ? (
+                            <div className="flex flex-col gap-3">
+                                {/* User info row */}
+                                <div className="flex items-center gap-3 px-1">
+                                    {user.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt={user.name}
+                                            className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/20"
+                                        />
+                                    ) : (
+                                        <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-black shrink-0">
+                                            {initials}
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-foreground">{user.name}</span>
+                                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <Button asChild variant="secondary" className="flex-1 font-bold py-6 rounded-lg text-[15px]">
+                                        <Link to="/app/inbox" onClick={() => setIsOpen(false)}>
+                                            <LayoutDashboard className="w-4 h-4 mr-1.5" />
+                                            Go to App
+                                        </Link>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 font-bold py-6 rounded-lg text-[14px]"
+                                        onClick={handleLogout}
+                                        disabled={logoutLoading}
+                                    >
+                                        <LogOut className="w-4 h-4 mr-1.5" />
+                                        Logout
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex gap-4">
+                                <Button asChild variant="secondary" className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground border-none font-bold py-6 rounded-lg text-[15px]">
+                                    <Link to="/app/login" onClick={() => setIsOpen(false)}>Log in</Link>
+                                </Button>
+                                <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 rounded-lg text-[15px] shadow-sm">
+                                    <Link to="/app/register" onClick={() => setIsOpen(false)}>Start for free</Link>
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

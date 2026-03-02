@@ -1,16 +1,18 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
 // Marketing pages
-import LandingPage from './Pages/Marketing Pages/LandingPage'
+import LandingPage from './pages/marketing/LandingPage'
 
 // Auth pages
-import LoginPage from './Pages/App Pages/LoginPage'
-import RegisterPage from './Pages/App Pages/RegisterPage'
-import MarketingNavbar from './components/MarketingNavbar'
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+import MarketingNavbar from './components/navbars/MarketingNavbar'
 
-// ── Guest route: redirect to app if already logged in ──────────────────────
+// Routes where the navbar should be hidden
+const HIDE_NAVBAR_ROUTES = ['/app/login', '/app/register']
+
 const GuestRoute = ({ children }) => {
   const { user, loading } = useAuth()
   if (loading) return null
@@ -18,15 +20,17 @@ const GuestRoute = ({ children }) => {
   return children
 }
 
-// ── App ────────────────────────────────────────────────────────────────────
 const App = () => {
+  const { pathname } = useLocation()
+  const showNavbar = !HIDE_NAVBAR_ROUTES.includes(pathname)
+
   return (
     <div>
-      <MarketingNavbar />
+      {showNavbar && <MarketingNavbar />}
       <Routes>
         {/* Marketing */}
         <Route path="/" element={<LandingPage />} />
-        {/* Auth — blocked if already signed in */}
+        {/* Auth — no navbar, blocked if already signed in */}
         <Route path="/app/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/app/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
 
