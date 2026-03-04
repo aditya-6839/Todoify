@@ -4,12 +4,13 @@ import { Mail, Lock, Eye, EyeOff, CheckCircle2, Circle, ArrowRight, Sparkles } f
 import { toast } from 'sonner';
 import gsap from 'gsap';
 import { useAuth } from '@/context/AuthContext';
-import { GoogleIcon } from '@/assets/GoogleIcon';
+import { GoogleIcon } from '@/assets/icons/GoogleIcon';
 import Logo from '@/assets/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 
 /* ── Floating task card ── */
 const TaskCard = ({ text, done, cardRef }) => (
@@ -214,10 +215,7 @@ const LoginPage = () => {
                                 className="w-full h-11 gap-3 bg-card text-foreground hover:border-primary/40 hover:bg-accent font-semibold"
                             >
                                 {googleLoading ? (
-                                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                    </svg>
+                                    <Spinner className="w-4 h-4" />
                                 ) : (
                                     <GoogleIcon />
                                 )}
@@ -300,10 +298,7 @@ const LoginPage = () => {
                                 >
                                     {loading ? (
                                         <span className="flex items-center gap-2">
-                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                            </svg>
+                                            <Spinner className="w-4 h-4" />
                                             Signing in…
                                         </span>
                                     ) : (

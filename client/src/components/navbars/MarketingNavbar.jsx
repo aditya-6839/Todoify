@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import Logo from '@/assets/Logo';
 import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const iconMap = {
     CheckCircle2: CheckCircle2,
@@ -145,15 +146,19 @@ const MarketingNavbar = () => {
                                     <div className="flex items-center gap-4 pl-2 border-l border-border">
                                         {/* Avatar bubble */}
                                         {user.avatar ? (
-                                            <img
-                                                src={user.avatar}
-                                                alt={user.name}
-                                                className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20"
-                                            />
+                                            <Avatar>
+                                                <AvatarImage
+                                                    src={user.avatar}
+                                                    alt={user.name}
+                                                    className="grayscale cursor-pointer"
+                                                    onClick={() => navigate('/app/profile')}
+                                                />
+                                                <AvatarFallback className="cursor-pointer" onClick={() => navigate('/app/profile')}>{initials}</AvatarFallback>
+                                            </Avatar>
                                         ) : (
-                                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-black">
-                                                {initials}
-                                            </div>
+                                            <Avatar>
+                                                <AvatarFallback className="cursor-pointer" onClick={() => navigate('/app/profile')}>{initials}</AvatarFallback>
+                                            </Avatar>
                                         )}
 
                                         {/* Logout button */}

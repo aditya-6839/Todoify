@@ -2,42 +2,46 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
-// Marketing pages
-import LandingPage from './pages/marketing/LandingPage'
+// Marketing
+import LandingPage from './Pages/marketing/LandingPage'
 
-// Auth pages
-import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
+// Auth
+import LoginPage from './Pages/auth/LoginPage'
+import RegisterPage from './Pages/auth/RegisterPage'
 import MarketingNavbar from './components/navbars/MarketingNavbar'
 
-// Routes where the navbar should be hidden
-const HIDE_NAVBAR_ROUTES = ['/app/login', '/app/register']
+import LoadingScreen from './components/ui/LoadingScreen'
 
+/* Guest-only route — redirects to inbox if already signed in */
 const GuestRoute = ({ children }) => {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingScreen />
   if (user) return <Navigate to="/app/inbox" replace />
   return children
 }
 
 const App = () => {
   const { pathname } = useLocation()
-  const showNavbar = !HIDE_NAVBAR_ROUTES.includes(pathname)
+
+  // Hide the marketing navbar for ALL app routes (auth + protected)
+  const showMarketingNavbar = !pathname.startsWith('/app')
 
   return (
     <div>
-      {showNavbar && <MarketingNavbar />}
+      {showMarketingNavbar && <MarketingNavbar />}
+
       <Routes>
-        {/* Marketing */}
+        {/* ── Marketing ── */}
         <Route path="/" element={<LandingPage />} />
-        {/* Auth — no navbar, blocked if already signed in */}
+
+        {/* ── Auth (no navbar, guest only) ── */}
         <Route path="/app/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/app/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
 
-        {/* Protected app routes */}
+        {/* ── Protected app (AppLayout handles sidebar + navbar) ── */}
         <Route path="/app/*" element={<ProtectedRoute />} />
 
-        {/* Fallback */}
+        {/* ── Fallback ── */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
