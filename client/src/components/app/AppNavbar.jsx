@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-    Search, Bell,
+    Search, Bell, CheckCircle2,
     Inbox, CalendarDays, CalendarRange, Tag,
     FolderKanban, Users, TrendingUp, Settings, UserCircle,
 } from 'lucide-react';
@@ -16,6 +16,7 @@ const PAGE_META = [
     { match: '/app/today', icon: CalendarDays, title: 'Today' },
     { match: '/app/upcoming', icon: CalendarRange, title: 'Upcoming' },
     { match: '/app/filters', icon: Tag, title: 'Filters & Labels' },
+    { match: '/app/completed', icon: CheckCircle2, title: 'Completed' },
     { match: '/app/projects', icon: FolderKanban, title: 'My Projects' },
     { match: '/app/team', icon: Users, title: 'Team' },
     { match: '/app/analytics', icon: TrendingUp, title: 'Analytics' },

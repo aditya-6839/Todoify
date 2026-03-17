@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Star, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const CTASection = () => {
+    const { user } = useAuth();
+
     return (
         <section
             className="relative flex items-center justify-center overflow-hidden py-28 md:py-40"
@@ -77,26 +80,43 @@ const CTASection = () => {
 
                 {/* CTA group */}
                 <div className="flex flex-col items-center gap-4 w-full mt-2">
-                    <Link
-                        to="/app/register"
-                        id="cta-start-for-free"
-                        className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg px-10 py-4 rounded-xl active:scale-[0.98] transition-all duration-200"
-                        style={{
-                            boxShadow: '0 8px 28px color-mix(in oklch, var(--primary) 30%, transparent)',
-                            fontFamily: 'var(--font-sans)',
-                        }}
-                    >
-                        Start for free
-                    </Link>
+                    {user ? (
+                        <Link
+                            to="/app/inbox"
+                            id="cta-go-to-app"
+                            className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg px-10 py-4 rounded-xl active:scale-[0.98] transition-all duration-200"
+                            style={{
+                                boxShadow: '0 8px 28px color-mix(in oklch, var(--primary) 30%, transparent)',
+                                fontFamily: 'var(--font-sans)',
+                            }}
+                        >
+                            <LayoutDashboard className="w-5 h-5" />
+                            Go to App
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                to="/app/register"
+                                id="cta-start-for-free"
+                                className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg px-10 py-4 rounded-xl active:scale-[0.98] transition-all duration-200"
+                                style={{
+                                    boxShadow: '0 8px 28px color-mix(in oklch, var(--primary) 30%, transparent)',
+                                    fontFamily: 'var(--font-sans)',
+                                }}
+                            >
+                                Start for free
+                            </Link>
 
-                    <Link
-                        to="/app/login"
-                        className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
-                        style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-sans)' }}
-                    >
-                        <span>Already have an account?</span>
-                        <span style={{ color: 'var(--primary)' }}>Sign in →</span>
-                    </Link>
+                            <Link
+                                to="/app/login"
+                                className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                                style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-sans)' }}
+                            >
+                                <span>Already have an account?</span>
+                                <span style={{ color: 'var(--primary)' }}>Sign in →</span>
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
         </section>

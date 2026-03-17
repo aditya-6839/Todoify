@@ -124,7 +124,13 @@ export const createTodo = async (req, res, next) => {
         // Add user to req.body
         req.body.user = req.user._id;
 
-        const todo = await Todo.create(req.body);
+        let todo = await Todo.create(req.body);
+        
+        // Populate fields so frontend sees them immediately
+        todo = await todo.populate([
+            { path: 'project', select: 'name members' },
+            { path: 'labels', select: 'name color' }
+        ]);
 
         res.status(201).json({
             success: true,
@@ -160,7 +166,11 @@ export const updateTodo = async (req, res, next) => {
         todo = await Todo.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true,
-        });
+        }).populate([
+            { path: 'project', select: 'name members' },
+            { path: 'labels', select: 'name color' },
+            { path: 'comments.user', select: 'name email avatar' }
+        ]);
 
         res.status(200).json({
             success: true,
@@ -228,6 +238,11 @@ export const toggleTodo = async (req, res, next) => {
 
         todo.completed = !todo.completed;
         await todo.save();
+        await todo.populate([
+            { path: 'project', select: 'name members' },
+            { path: 'labels', select: 'name color' },
+            { path: 'comments.user', select: 'name email avatar' }
+        ]);
 
         res.status(200).json({
             success: true,

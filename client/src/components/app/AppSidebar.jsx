@@ -1,32 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
     Inbox, CalendarDays, CalendarRange, Tag,
-    FolderKanban, Users, TrendingUp, Settings,
-    LogOut, Plus, PanelLeft,
+    Users, TrendingUp, Settings,
+    LogOut, Plus, PanelLeft, CheckCircle2,
+    ChevronDown, ChevronRight, Folder, FolderPlus
 } from 'lucide-react';
 import {
     Sidebar, SidebarContent, SidebarFooter,
-    SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+    SidebarGroup, SidebarGroupContent,
     SidebarHeader, SidebarMenu, SidebarMenuButton,
     SidebarMenuItem, SidebarSeparator, useSidebar,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/context/AuthContext';
-
-/* ─── Nav definitions ──────────────────────────────── */
-const mainNav = [
-    { label: 'Inbox', icon: Inbox, href: '/app/inbox', badge: 4 },
-    { label: 'Today', icon: CalendarDays, href: '/app/today' },
-    { label: 'Upcoming', icon: CalendarRange, href: '/app/upcoming' },
-    { label: 'Filters', icon: Tag, href: '/app/filters' },
-];
-
-const workspaceNav = [
-    { label: 'My Projects', icon: FolderKanban, href: '/app/projects' },
-    { label: 'Team', icon: Users, href: '/app/team' },
-    { label: 'Analytics', icon: TrendingUp, href: '/app/analytics' },
-];
+import { useAddTask } from '@/context/AddTaskContext';
+import { useProjects } from '@/hooks/useProjects';
+import { cn } from '@/lib/utils';
 
 /* ─── NavItem ──────────────────────────────────────── */
 const NavItem = ({ label, icon: Icon, href, badge }) => (
@@ -65,11 +55,26 @@ const NavItem = ({ label, icon: Icon, href, badge }) => (
 /* ─── AppSidebar ───────────────────────────────────── */
 const AppSidebar = () => {
     const { user, logout } = useAuth();
+    const { todos, setOpen: openAddTask } = useAddTask();
+    const { projects } = useProjects();
     const navigate = useNavigate();
+    const [projectsOpen, setProjectsOpen] = useState(true);
 
-    // isMobile → sidebar becomes a Sheet drawer (handled by shadcn internally)
-    // On mobile: always fully expanded inside the Sheet, no icon-collapse
-    // On desktop: collapsible to icon-only strip
+    const inboxCount = (todos || []).filter(t => !t.completed).length;
+
+    const mainNav = [
+        { label: 'Inbox', icon: Inbox, href: '/app/inbox', badge: inboxCount > 0 ? inboxCount : null },
+        { label: 'Today', icon: CalendarDays, href: '/app/today' },
+        { label: 'Upcoming', icon: CalendarRange, href: '/app/upcoming' },
+        { label: 'Filters', icon: Tag, href: '/app/filters' },
+        { label: 'Completed', icon: CheckCircle2, href: '/app/completed' },
+    ];
+
+    const workspaceNav = [
+        { label: 'Team', icon: Users, href: '/app/team' },
+        { label: 'Analytics', icon: TrendingUp, href: '/app/analytics' },
+    ];
+
     const { state, toggleSidebar, isMobile } = useSidebar();
     const isCollapsed = !isMobile && state === 'collapsed';
 
@@ -85,16 +90,10 @@ const AppSidebar = () => {
     return (
         <Sidebar collapsible="icon">
 
-            {/* ══ HEADER ══
-                h-14 matches navbar exactly on all breakpoints.
-                Desktop: [PanelLeft toggle] ····· [+ New Task]
-                Mobile (Sheet): just [+ New Task] pushed right — Sheet handles close
-            */}
             <SidebarHeader
                 className="h-14 px-2 flex flex-row items-center gap-1 overflow-hidden border-b shrink-0"
                 style={{ borderColor: 'var(--sidebar-border)' }}
             >
-                {/* PanelLeft – only on desktop (mobile uses navbar hamburger) */}
                 {!isMobile && (
                     <button
                         onClick={toggleSidebar}
@@ -109,14 +108,12 @@ const AppSidebar = () => {
                     </button>
                 )}
 
-                {/* Spacer */}
                 <div className="flex-1" />
 
-                {/* New Task */}
                 {!isCollapsed && (
                     <button
                         aria-label="New task"
-                        onClick={() => { /* open modal */ }}
+                        onClick={() => openAddTask(true)}
                         className="flex items-center justify-center w-8 h-8 rounded-md shrink-0
                             transition-colors duration-150
                             hover:bg-sidebar-accent
@@ -128,9 +125,9 @@ const AppSidebar = () => {
                 )}
             </SidebarHeader>
 
-            {/* ══ CONTENT ══ */}
             <SidebarContent className="overflow-x-hidden">
 
+                {/* ── Main nav ── */}
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu>
@@ -141,23 +138,107 @@ const AppSidebar = () => {
 
                 <SidebarSeparator className="mx-0!" />
 
-                <SidebarGroup>
-                    <SidebarGroupLabel
-                        className="text-[10px] font-black uppercase tracking-widest"
-                        style={{ fontFamily: 'var(--font-sans)' }}
-                    >
-                        Workspace
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {workspaceNav.map(item => <NavItem key={item.href} {...item} />)}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {/* ── Projects (inline, collapsible) ── */}
+                {!isCollapsed && (
+                    <SidebarGroup>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {/* Projects header row */}
+                                <SidebarMenuItem>
+                                    <div className="flex items-center justify-between px-2 py-1.5 group/projects-header">
+                                        <button
+                                            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-muted-foreground transition-colors flex-1"
+                                            onClick={() => setProjectsOpen(v => !v)}
+                                        >
+                                            {projectsOpen
+                                                ? <ChevronDown className="w-3 h-3" />
+                                                : <ChevronRight className="w-3 h-3" />
+                                            }
+                                            Projects
+                                        </button>
+                                        <button
+                                            aria-label="New project"
+                                            onClick={() => navigate('/app/projects')}
+                                            className="opacity-0 group-hover/projects-header:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground rounded"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </SidebarMenuItem>
+
+                                {/* Project list */}
+                                {projectsOpen && (
+                                    <>
+                                        {projects.length === 0 ? (
+                                            <SidebarMenuItem>
+                                                <button
+                                                    onClick={() => navigate('/app/projects')}
+                                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors rounded-md"
+                                                >
+                                                    <FolderPlus className="w-3.5 h-3.5" />
+                                                    Create a project
+                                                </button>
+                                            </SidebarMenuItem>
+                                        ) : (
+                                            projects.map(p => (
+                                                <SidebarMenuItem key={p._id}>
+                                                    <SidebarMenuButton asChild tooltip={p.name}>
+                                                        <NavLink to={`/app/projects/${p._id}`}>
+                                                            {({ isActive }) => (
+                                                                <>
+                                                                    <Folder
+                                                                        className="w-4 h-4 shrink-0"
+                                                                        style={{ color: isActive ? 'var(--primary)' : 'currentColor' }}
+                                                                    />
+                                                                    <span className="flex-1 text-sm font-medium truncate">
+                                                                        {p.name}
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </NavLink>
+                                                    </SidebarMenuButton>
+                                                </SidebarMenuItem>
+                                            ))
+                                        )}
+                                    </>
+                                )}
+
+                                <SidebarSeparator className="mx-0! mt-2" />
+
+                                {/* Workspace nav */}
+                                {workspaceNav.map(item => <NavItem key={item.href} {...item} />)}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
+
+                {/* Collapsed: show folder icons for projects */}
+                {isCollapsed && (
+                    <SidebarGroup>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {projects.map(p => (
+                                    <SidebarMenuItem key={p._id}>
+                                        <SidebarMenuButton asChild tooltip={p.name}>
+                                            <NavLink to={`/app/projects/${p._id}`}>
+                                                {({ isActive }) => (
+                                                    <Folder
+                                                        className="w-4 h-4 shrink-0"
+                                                        style={{ color: isActive ? 'var(--primary)' : 'currentColor' }}
+                                                    />
+                                                )}
+                                            </NavLink>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                                {workspaceNav.map(item => <NavItem key={item.href} {...item} />)}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
 
             </SidebarContent>
 
-            {/* ══ FOOTER ══ */}
             <SidebarSeparator className="mx-0!" />
             <SidebarFooter className="overflow-x-hidden pb-2">
                 <SidebarMenu>
@@ -190,10 +271,7 @@ const AppSidebar = () => {
                             className="cursor-pointer h-12 rounded-xl"
                         >
                             <Avatar className="w-7 h-7 shrink-0">
-                                <AvatarImage
-                                    src={user?.avatar || ''}
-                                    alt={user?.name || 'User'}
-                                />
+                                <AvatarImage src={user?.avatar || ''} alt={user?.name || 'User'} />
                                 <AvatarFallback
                                     className="text-[10px] font-black"
                                     style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
@@ -201,12 +279,11 @@ const AppSidebar = () => {
                                     {initials}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                            <div className="flex flex-col min-w-0 flex-1 overflow-hidden text-left">
                                 <span className="text-[0.8rem] font-bold truncate leading-tight" style={{ fontFamily: 'var(--font-sans)' }}>
                                     {user?.name || 'User'}
                                 </span>
-                                <span className="text-[0.68rem] truncate leading-tight"
-                                    style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-sans)' }}>
+                                <span className="text-[0.68rem] truncate leading-tight text-muted-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
                                     {user?.email || ''}
                                 </span>
                             </div>
@@ -215,14 +292,9 @@ const AppSidebar = () => {
 
                     {/* Logout */}
                     <SidebarMenuItem>
-                        <SidebarMenuButton
-                            tooltip="Log out"
-                            onClick={handleLogout}
-                            className="cursor-pointer"
-                        >
-                            <LogOut className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-foreground)' }} />
-                            <span className="text-sm font-medium truncate"
-                                style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-sans)' }}>
+                        <SidebarMenuButton tooltip="Log out" onClick={handleLogout} className="cursor-pointer">
+                            <LogOut className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            <span className="text-sm font-medium truncate text-muted-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
                                 Log out
                             </span>
                         </SidebarMenuButton>

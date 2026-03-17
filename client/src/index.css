@@ -173,3 +173,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Custom Task Scrollbar ── */
+.custom-task-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-task-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-task-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.custom-task-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+.custom-task-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
